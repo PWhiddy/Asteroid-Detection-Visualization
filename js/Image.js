@@ -50,7 +50,7 @@ class RawImage {
  
   makeMesh(material) {
     // geometry
-    let bufferGeometry = new THREE.BoxBufferGeometry( 1.0, 1.0, 0.2 );
+    let bufferGeometry = new THREE.BoxBufferGeometry( 1.0, 1.0, 0.12 );
     // copying data from a simple box geometry, but you can specify a custom geometry if you want
     let geo = new THREE.InstancedBufferGeometry();
     geo.index = bufferGeometry.index;
@@ -68,6 +68,7 @@ class RawImage {
       offsets.push( x, y, z );
 
       let colVal = (this.buf[i]-this.minVal)/(this.maxVal-this.minVal);
+      colVal = colVal*colVal*colVal;
       colors.push( colVal, 0.65*(1.0-colVal), 1.0-colVal, 1);
     }
     let offsetAttribute =
