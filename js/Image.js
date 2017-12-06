@@ -7,29 +7,26 @@ class RawImage {
     this.height = h;
     this.pixelCount = w*h;
     this.buf = new Float32Array(this.pixelCount);
+    this.hasMesh = false;
   }
   
   setPixel(x, y, value) {
-  	this.buf[x+y*this.width] = value;
+    this.buf[x+y*this.width] = value;
   }
 
   getPixel(x, y) {
-  	return this.buf[x+y*this.width];
+    return this.buf[x+y*this.width];
   }
 
   getBuf() {
-  	return this.buf;
+    return this.buf;
   }
 
   makeNoise(mean, sigma) {
-  	//for (let pixel of this.buf) pixel = randomNorm(mean, sigma);
-  	for (let i=0; i<this.pixelCount; i++) {
-  	  this.buf[i] = randomNorm(mean, sigma);
-  	}
-  }
-
-  makeMesh() {
-  	let 
+    //for (let pixel of this.buf) pixel = randomNorm(mean, sigma);
+    for (let i=0; i<this.pixelCount; i++) {
+      this.buf[i] = this.randomNorm(mean, sigma);
+    }
   }
 
   randomNorm(mean, sigma) {
@@ -41,47 +38,11 @@ class RawImage {
       Math.cos( 2.0 * Math.PI * v )
       + mean;
   }
-
-}
-
-function loadShaders(vertexSource, fragmentSource) {
-  // Asynchronicity is pain :(
-  let vertLoaded = false;
-  let fragLoaded = false;
-  let continued = false;
-  let vs = '';
-  let fs = '';
-
-  let vertLoader = new XMLHttpRequest();
-  vertLoader.open("GET", vertexSource, false);
-  vertLoader.onreadystatechange = function() {
-  	if (vertLoader.readyState === 4) {
-  	  vs = vertLoader.responseText;
-  	  vertLoaded = true;
-  	  if (vertLoaded && fragLoaded && !continued) {
-  	    initMaterial(vs,fs);
-  		continued = true;
-  	  }
-  	}
+ 
+  makeMesh() {
+    this.hasMesh = true;
   }
 
-  let fragLoader = new XMLHttpRequest();
-  fragLoader.open("GET", fragmentSource, false);
-  fragLoader.onreadystatechange = function() {
-  	if (fragLoader.readyState === 4) {
-  	  fs = fragLoader.responseText;
-  	  fragLoaded = true;
-  	  if (vertLoaded && fragLoaded && !continued) {
-  	    initMaterial(vs, fs);
-  	    continued = true;
-  	  }
-  	}
-  }
-
-}
-
-function initMaterial(vs, fs) {
-  
 }
 
 
