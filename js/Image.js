@@ -7,7 +7,9 @@ class RawImage {
     this.height = h;
     this.pixelCount = w*h;
     this.buf = new Float32Array(this.pixelCount);
-    this.hasMesh = false;
+    this.maxVal = 1.0;
+    this.minVal = 0.0;
+    this.mesh = null;
   }
   
   setPixel(x, y, value) {
@@ -25,7 +27,10 @@ class RawImage {
   makeNoise(mean, sigma) {
     //for (let pixel of this.buf) pixel = randomNorm(mean, sigma);
     for (let i=0; i<this.pixelCount; i++) {
-      this.buf[i] = this.randomNorm(mean, sigma);
+      let c = this.randomNorm(mean, sigma);
+      this.buf[i] = c;
+      this.maxVal = Math.max(this.maxVal, c);
+      this.minVal = Math.min(this.minVal, c)
     }
   }
 
@@ -38,9 +43,42 @@ class RawImage {
       Math.cos( 2.0 * Math.PI * v )
       + mean;
   }
+
+  hasMesh() {
+    return this.mesh !== null;
+  }
  
-  makeMesh() {
-    this.hasMesh = true;
+  makeMesh(material) {
+    // geometry
+    let bufferGeometry = new THREE.BoxBufferGeometry( 1.0, 1.0, 0.2 );
+    // copying data from a simple box geometry, but you can specify a custom geometry if you want
+    let geo = new THREE.InstancedBufferGeometry();
+    geo.index = bufferGeometry.index;
+    geo.attributes.position = bufferGeometry.attributes.position;
+    // per instance data
+    var offsets = [];
+    var colors = [];
+
+    for ( let i = 0; i < this.pixelCount; i ++ ) {
+      let x, y, z, w;
+      // offsets
+      x = i%this.width-this.width/2;
+      y = Math.floor(i/this.width)-this.height/2;
+      z = 0;
+      offsets.push( x, y, z );
+
+      let colVal = (this.buf[i]-this.minVal)/(this.maxVal-this.minVal);
+      colors.push( colVal, 0.65*(1.0-colVal), 1.0-colVal, 1);
+    }
+    let offsetAttribute =
+      new THREE.InstancedBufferAttribute( new Float32Array( offsets ), 3 );
+    let colorAttribute =
+      new THREE.InstancedBufferAttribute( new Float32Array( colors ), 4);
+    geo.addAttribute( 'offset', offsetAttribute );
+    geo.addAttribute( 'color', colorAttribute );
+
+    this.mesh = new THREE.Mesh(geo, material);
+    //this.hasMesh = true;
   }
 
 }

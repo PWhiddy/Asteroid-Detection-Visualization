@@ -2,7 +2,7 @@
 import * as THREE from './three.module.js';
 import { RawImage } from './Image.js';
 
-var camera, scene, renderer;
+var camera, scene, renderer, stats;
 var mesh;
 
 loadShaders('../shaders/image_grid.vertex', '../shaders/image_grid.frag');
@@ -11,14 +11,16 @@ function init(vs, fs) {
   camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 1000 );
   camera.position.z = 10;
   scene = new THREE.Scene();
-  let geometry = new THREE.BoxBufferGeometry( 2, 2, 2 );
+  scene.background = new THREE.Color( 0xffffff );
+  //let geometry = new THREE.BoxBufferGeometry( 2, 2, 2 );
 
   let mat = new THREE.RawShaderMaterial({
-  	uniforms: {},
+  	uniforms: { tileScale: { value: 0.8 } },
   	vertexShader: vs,
   	fragmentShader: fs
   });
 
+  /*
 	// geometry
 	let instances = 500;
 	let bufferGeometry = new THREE.BoxBufferGeometry( 0.5, 0.5, 0.5 );
@@ -47,33 +49,39 @@ function init(vs, fs) {
     z = Math.random();
     colors.push(x,y,z,1);
 	}
-	let offsetAttribute = 
+	let offsetAttribute =
     new THREE.InstancedBufferAttribute( new Float32Array( offsets ), 3 );
-  let colorAttribute = 
+  let colorAttribute =
     new THREE.InstancedBufferAttribute( new Float32Array( colors ), 4);
 	geo.addAttribute( 'offset', offsetAttribute );
   geo.addAttribute( 'color', colorAttribute );
-
+  */
   ///
 
-  let material = new THREE.MeshBasicMaterial({color:0x882244});
+  //let material = new THREE.MeshBasicMaterial({color:0x882244});
 
-  mesh = new THREE.Mesh( geo, mat );
+  //mesh = new THREE.Mesh( geo, mat );
+
+  let img = new RawImage(15, 10);
+  img.makeNoise(0.0, 5.0);
+  img.makeMesh(mat);
+
+  mesh = img.mesh;
+
   scene.add( mesh );
-  renderer = new THREE.WebGLRenderer();
+  renderer = new THREE.WebGLRenderer({antialias: true});
   renderer.setPixelRatio( window.devicePixelRatio );
   renderer.setSize( window.innerWidth, window.innerHeight );
   document.body.appendChild( renderer.domElement );
   //
   window.addEventListener( 'resize', onWindowResize, false );
-  
-  let img = new RawImage(15, 10);
-  img.makeNoise(0.0, 5.0);
+
+  stats = new Stats();
+  document.body.appendChild(stats.dom);
 
   animate();
 
 }
-
 
 function loadShaders(vertexSource, fragmentSource) {
   // Asynchronicity is pain :(
@@ -123,4 +131,5 @@ function animate() {
   mesh.rotation.x += 0.005;
   mesh.rotation.y += 0.01;
   renderer.render( scene, camera );
+  stats.update();
 }
