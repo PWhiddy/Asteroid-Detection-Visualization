@@ -1,20 +1,20 @@
 
 import * as THREE from './three.module.js';
-import { RawImage } from './Image.js';
+import { RawImage, SearchCone } from './Image.js';
 import { OrbitControls } from './OrbitControls.js';
 
 var camera, scene, renderer, controls, stats;
 var imageMeshes;
 
-const imgW = 20;
-const imgH = 20;
-const imgCount = 10;
-var imgSpacing = 5;
+const imgW = 8;
+const imgH = 8;
+const imgCount = 4;
+var imgSpacing = 2;
 
 loadShaders('../shaders/image_grid.vertex', '../shaders/image_grid.frag');
 
 function init(vs, fs) {
-  camera = new THREE.PerspectiveCamera( 35, window.innerWidth / window.innerHeight, 1, 1000 );
+  camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 1000 );
   camera.position.z = 10;
 
   scene = new THREE.Scene();
@@ -32,7 +32,7 @@ function init(vs, fs) {
 
   for (let i=0; i<imgCount; i++) {
     let img = new RawImage(imgW, imgH);
-    img.makeNoise(0.0, 1.0);
+    img.makeNoise(0.0, 0.5);
     img.makeMesh(mat);
     imageMeshes.add(img.mesh);
     imgs.push(img);
@@ -41,6 +41,11 @@ function init(vs, fs) {
   setSpacing();
 
   scene.add( imageMeshes );
+
+  let cone = new SearchCone(0.0, 1.5, 8, 3, 10, 8);
+  cone.makeEndPoints(mat);
+  console.log(cone.endpoints);
+  scene.add(cone.endpoints);
 
   renderer = new THREE.WebGLRenderer({antialias: true});
   renderer.setPixelRatio( window.devicePixelRatio );

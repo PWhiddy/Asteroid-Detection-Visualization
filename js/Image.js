@@ -50,7 +50,7 @@ class RawImage {
  
   makeMesh(material) {
     // geometry
-    let bufferGeometry = new THREE.BoxBufferGeometry( 1.0, 1.0, 0.12 );
+    let bufferGeometry = new THREE.BoxBufferGeometry( 1.0, 1.0, 0.15 );
     // copying data from a simple box geometry, but you can specify a custom geometry if you want
     let geo = new THREE.InstancedBufferGeometry();
     geo.index = bufferGeometry.index;
@@ -84,5 +84,55 @@ class RawImage {
 
 }
 
+class SearchCone {
 
-export { RawImage };
+  constructor(minAng, maxAng, stepsAng, minVel, maxVel, stepsVel) {
+    this.minAngle = minAng;
+    this.maxAngle = maxAng;
+    this.stepsAngle = stepsAng;
+    this.minVelocity = minVel;
+    this.maxVelocity = maxVel;
+    this.stepsVelocity = stepsVel;
+    this.lines = null;
+    this.cone = null;
+    this.endpoints = null;
+  }
+
+  makeEndPoints(material) {
+    //let material = new THREE.MeshBasicMaterial({color:0xff8800});
+    let buffergeo = new THREE.SphereBufferGeometry(0.05, 8, 8);
+
+    let geo = new THREE.InstancedBufferGeometry();
+    geo.index = buffergeo.index;
+    geo.attributes.position = buffergeo.attributes.position;
+    // per instance data
+    var offsets = [];
+    var colors = [];
+
+    let aStep = (this.maxAngle-this.minAngle)/this.stepsAngle;
+    let vStep = (this.maxVelocity-this.minVelocity)/this.stepsVelocity;
+    for (let a=this.minAngle; a<this.maxAngle; a+=aStep) {
+      for (let v=this.minVelocity; v<this.maxVelocity; v+=vStep) {
+        offsets.push(v*Math.cos(a), v*Math.sin(a), 0.0);
+        colors.push(1.0, 0.65, 0.0, 1.0);
+      }
+    }
+
+    let offsetAttribute =
+      new THREE.InstancedBufferAttribute( new Float32Array( offsets ), 3 );
+    let colorAttribute =
+      new THREE.InstancedBufferAttribute( new Float32Array( colors ), 4);
+    geo.addAttribute( 'offset', offsetAttribute );
+    geo.addAttribute( 'color', colorAttribute );
+
+
+
+    this.endpoints = new THREE.Mesh(geo, material);
+    this.endpoints.frustumCulled = false;
+
+  }
+
+}
+
+
+export { RawImage, SearchCone };
